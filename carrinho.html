@@ -1,0 +1,506 @@
+<style>
+    .pagina-carrinho {
+        min-height: 100vh;
+        padding: 40px 20px;
+        background: #fff8f8;
+    }
+
+    .carrinho-container {
+        max-width: 1000px;
+        margin: auto;
+    }
+
+    .voltar-carrinho {
+        display: inline-block;
+        margin-bottom: 30px;
+        color: #333;
+        text-decoration: none;
+    }
+
+    .voltar-carrinho:hover {
+        color: #b08d57;
+    }
+
+    .titulo-carrinho {
+        text-align: center;
+        margin-bottom: 35px;
+        color: #333;
+    }
+
+    .item-carrinho {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+
+        background: white;
+        border: 1px solid #d9a0a8;
+        border-radius: 15px;
+
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .item-carrinho img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .informacoes-carrinho {
+        flex: 1;
+    }
+
+    .informacoes-carrinho h3 {
+        margin-bottom: 8px;
+    }
+
+    .preco-carrinho {
+        color: #b08d57;
+        font-weight: bold;
+    }
+
+    .controle-quantidade {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .controle-quantidade button {
+        width: 30px;
+        height: 30px;
+
+        border: 1px solid #d9a0a8;
+        background: white;
+
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    .remover {
+        border: none;
+        background: transparent;
+        color: #b76e79;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .resumo-carrinho {
+        background: white;
+        border: 1px solid #d9a0a8;
+        border-radius: 15px;
+
+        padding: 25px;
+        margin-top: 30px;
+    }
+
+    .linha-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+
+    .valor-total {
+        color: #b08d57;
+        font-weight: bold;
+    }
+
+    .finalizar-compra {
+        width: 100%;
+        padding: 15px;
+
+        border: none;
+        background: #b08d57;
+        color: white;
+
+        font-size: 17px;
+        cursor: pointer;
+    }
+
+    .finalizar-compra:hover {
+        background: #927342;
+    }
+
+    .carrinho-vazio {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+    }
+
+    @media (max-width: 600px) {
+
+        .item-carrinho {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .item-carrinho img {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: cover;
+        }
+    }
+</style>
+
+</head>
+
+<body>
+
+<main class="pagina-carrinho">
+
+    <div class="carrinho-container">
+
+        <a href="index.html" class="voltar-carrinho">
+            ← Continuar comprando
+        </a>
+
+        <h1 class="titulo-carrinho">
+            🛒 Seu Carrinho
+        </h1>
+
+        <div id="listaCarrinho"></div>
+
+        <div class="resumo-carrinho" id="resumoCarrinho">
+
+            <div class="linha-total">
+
+                <span>Total</span>
+
+                <span class="valor-total" id="totalCarrinho">
+                    R$ 0,00
+                </span>
+
+            </div>
+
+            <button
+                class="finalizar-compra"
+                onclick="finalizarCompra()">
+
+                Finalizar compra
+
+            </button>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<script>
+
+    /*
+    ==========================================
+    CARRINHO
+    ==========================================
+    */
+
+    let carrinho =
+        JSON.parse(localStorage.getItem("carrinho")) || [];
+
+
+    /*
+    ==========================================
+    FORMATAR PREÇO
+    ==========================================
+    */
+
+    function formatarPreco(valor) {
+
+        return valor.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL"
+        });
+
+    }
+
+
+    /*
+    ==========================================
+    MOSTRAR CARRINHO
+    ==========================================
+    */
+
+    function mostrarCarrinho() {
+
+        const lista =
+            document.getElementById("listaCarrinho");
+
+        const resumo =
+            document.getElementById("resumoCarrinho");
+
+        lista.innerHTML = "";
+
+
+        /*
+        Se o carrinho estiver vazio
+        */
+
+        if (carrinho.length === 0) {
+
+            lista.innerHTML = `
+                <div class="carrinho-vazio">
+
+                    <h2>Seu carrinho está vazio 🛒</h2>
+
+                    <p>
+                        Adicione algum produto para continuar.
+                    </p>
+
+                </div>
+            `;
+
+            resumo.style.display = "none";
+
+            atualizarContador();
+
+            return;
+        }
+
+
+        resumo.style.display = "block";
+
+
+        /*
+        Criar cada produto
+        */
+
+        carrinho.forEach((produto, index) => {
+
+            const item =
+                document.createElement("div");
+
+            item.classList.add("item-carrinho");
+
+
+            item.innerHTML = `
+
+                <img
+                    src="${produto.imagem}"
+                    alt="${produto.nome}"
+                >
+
+                <div class="informacoes-carrinho">
+
+                    <h3>
+                        ${produto.nome}
+                    </h3>
+
+                    <p class="preco-carrinho">
+                        ${formatarPreco(produto.preco)}
+                    </p>
+
+                    <div class="controle-quantidade">
+
+                        <button
+                            onclick="diminuirQuantidade(${index})">
+                            −
+                        </button>
+
+                        <span>
+                            ${produto.quantidade}
+                        </span>
+
+                        <button
+                            onclick="aumentarQuantidade(${index})">
+                            +
+                        </button>
+
+                    </div>
+
+                    <button
+                        class="remover"
+                        onclick="removerProduto(${index})">
+
+                        Remover produto
+
+                    </button>
+
+                </div>
+            `;
+
+
+            lista.appendChild(item);
+
+        });
+
+
+        calcularTotal();
+
+        atualizarContador();
+
+    }
+
+
+    /*
+    ==========================================
+    AUMENTAR QUANTIDADE
+    ==========================================
+    */
+
+    function aumentarQuantidade(index) {
+
+        carrinho[index].quantidade++;
+
+        salvarCarrinho();
+
+        mostrarCarrinho();
+
+    }
+
+
+    /*
+    ==========================================
+    DIMINUIR QUANTIDADE
+    ==========================================
+    */
+
+    function diminuirQuantidade(index) {
+
+        if (carrinho[index].quantidade > 1) {
+
+            carrinho[index].quantidade--;
+
+        }
+
+        salvarCarrinho();
+
+        mostrarCarrinho();
+
+    }
+
+
+    /*
+    ==========================================
+    REMOVER PRODUTO
+    ==========================================
+    */
+
+    function removerProduto(index) {
+
+        carrinho.splice(index, 1);
+
+        salvarCarrinho();
+
+        mostrarCarrinho();
+
+    }
+
+
+    /*
+    ==========================================
+    CALCULAR TOTAL
+    ==========================================
+    */
+
+    function calcularTotal() {
+
+        let total = 0;
+
+
+        carrinho.forEach(produto => {
+
+            total +=
+                produto.preco *
+                produto.quantidade;
+
+        });
+
+
+        document.getElementById("totalCarrinho")
+            .textContent = formatarPreco(total);
+
+    }
+
+
+    /*
+    ==========================================
+    SALVAR CARRINHO
+    ==========================================
+    */
+
+    function salvarCarrinho() {
+
+        localStorage.setItem(
+            "carrinho",
+            JSON.stringify(carrinho)
+        );
+
+    }
+
+
+    /*
+    ==========================================
+    CONTADOR DO 🛒
+    ==========================================
+    */
+
+    function atualizarContador() {
+
+        const quantidadeTotal =
+            carrinho.reduce(
+                (total, produto) =>
+                    total + produto.quantidade,
+                0
+            );
+
+        console.log(
+            "Produtos no carrinho:",
+            quantidadeTotal
+        );
+
+    }
+
+
+    /*
+    ==========================================
+    FINALIZAR COMPRA
+    ==========================================
+    */
+
+    function finalizarCompra() {
+
+        if (carrinho.length === 0) {
+
+            alert(
+                "Seu carrinho está vazio."
+            );
+
+            return;
+
+        }
+
+
+        /*
+        Aqui futuramente você pode
+        conectar o checkout do seu
+        sistema de pagamento.
+        */
+
+        alert(
+            "Compra iniciada! Total: " +
+            document.getElementById("totalCarrinho").textContent
+        );
+
+    }
+
+
+    /*
+    ==========================================
+    INICIAR
+    ==========================================
+    */
+
+    mostrarCarrinho();
+
+</script>
+
+</body>
+
+</html>
